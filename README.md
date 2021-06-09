@@ -2,6 +2,8 @@
 
 ### MONGODB INJECTION VULNERABILITY CODE SMELLS LIKE BELOW
 
+##### check for this nosqlinjector tool
+https://github.com/blessingcharles/nosqlInjector/
 
 ## if you check login like this without encrypting password we are in
 
