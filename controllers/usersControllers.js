@@ -1,105 +1,83 @@
-const userModel = require("../models/userModels")
-const jwt = require("jsonwebtoken")
+const userModel = require("../models/userModels");
+const jwt = require("jsonwebtoken");
 
-const userSignup = async (req,res,next)=>{
+const userSignup = async (req, res, next) => {
+    const { name, email, password } = req.body;
 
-    const {name , email , password} = req.body  ;
+    if (!name || !email || !password)
+        return res.json({ error: "invalid data" });
 
-
-    if(!name || !email || !password ) return res.json({error:"invalid data"})
-
-    let identifyUser 
+    let identifyUser;
     try {
         //checking if email already exists
-         identifyUser = await userModel.findOne({email:email})
-    }
-    catch(err){
-        
-        return res.json({error:"something went wrong"});
+        identifyUser = await userModel.findOne({ email: email });
+    } catch (err) {
+        return res.json({ error: "something went wrong" });
     }
 
-    if(identifyUser) return res.json({error:"email already exists"})
+    if (identifyUser) return res.json({ error: "email already exists" });
 
     const user = new userModel({
         name,
         email,
-        password
-    })
+        password,
+    });
 
-    try{
+    try {
         await user.save();
-    }
-    catch(err){
-       return res.json({error:"something went wrong"})
-    }
-
-     //generating jwt token
-     let token
-     try{
-         token = jwt.sign({email:email},'secretkey',{expiresIn:'24hrs'})
-     }
-     catch(err){
-         const error = new httpError('try again later',400)
-         return next(error)
-     }
- 
-     res
-     .status(201)
-     .json({email:email,token:token});
-
-
-}
-
-
-const userLogin = async (req,res,next)=>{
-
-    let {email , password} = req.body
-
-    if(!email || !password) return res.json({error : "invalid data"})
-
-    let identifyUser ;
-
-    console.log(email)
-    
-    const query = {$where:"this.email == '"+email+ "' "}
-    
-    console.log(query)
-  //  {$where:"this.email == '' ; sleep(5000);''"}
-    try{
-        identifyUser = await userModel.findOne(query)
-    }
-    catch(err){
-        console.log(err)
-        return res.json({error : "something went wrong"})
+    } catch (err) {
+        return res.json({ error: "something went wrong" });
     }
 
-    if(identifyUser) console.log(identifyUser.name , identifyUser.password)
+    //generating jwt token
+    let token;
+    try {
+        token = jwt.sign({ email: email }, "secretkey", { expiresIn: "24hrs" });
+    } catch (err) {
+        const error = new httpError("try again later", 400);
+        return next(error);
+    }
 
+    res.status(201).json({ email: email, token: token });
+};
 
-  //  console.log(identifyUser.password , password)
-    if(identifyUser &&  identifyUser.password === password){
+const userLogin = async (req, res, next) => {
+    let { email, password } = req.body;
 
-        let token
-        try{
-            token = jwt.sign({email:email},'secretkey',{expiresIn:'24hrs'})
+    if (!email || !password) return res.json({ error: "invalid data" });
+
+    let identifyUser;
+
+    console.log(email);
+
+    try {
+        identifyUser = await userModel.findOne({
+            email: email,
+            password: password,
+        });
+    } catch (err) {
+        return res.status(500).json({ error: "something went wrong" });
+    }
+
+    if (identifyUser) {
+        //generate token other stuffs
+        let token;
+        try {
+            token = jwt.sign({ email: identifyUser.email, isAdmin: false }, "secretkey", {
+                expiresIn: "24hrs",
+            });
+        } catch (err) {
+            const error = new httpError("try again later", 400);
+            return next(error);
         }
-        catch(err){
-            const error = new httpError('try again later',400)
-            return next(error)
-        }
-    
-        return res
-        .status(200)
-        .json({email:email,token:token});
 
+        return res.status(200).json({ email: identifyUser.email, token: token });
     }
 
-    res.json({error:"invalid credentials"})
-
-  
-}
+    res.status(400).json({ error: "invalid credentials" });
+};
 
 module.exports = {
     userSignup,
-    userLogin
-}
+    userLogin,
+};
